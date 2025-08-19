@@ -358,6 +358,9 @@ CREATE TABLE sunbird.user_bulk_upload (
     filepath text,
     status text,
     updatedby text,
+    totalrecords int,
+    successfulrecordscount int,
+    failedrecordscount int,
     PRIMARY KEY (rootorgid, identifier)
 ) WITH CLUSTERING ORDER BY (identifier ASC);
 ```
