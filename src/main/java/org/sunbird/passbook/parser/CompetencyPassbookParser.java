@@ -86,11 +86,50 @@ public class CompetencyPassbookParser implements PassbookParser {
 				}
 			}
 
-			competencyInfo.getAcquiredDetails().add(acquiredDetail);
-			competencyPassbookInfo.getCompetencies().put(competencyId, competencyInfo);
-		}
+			if (! isCourseAlreadyExist(competencyId, userId, acquiredDetail, competencyMap)) {
+				competencyInfo.getAcquiredDetails().add(acquiredDetail);
+				competencyPassbookInfo.getCompetencies().put(competencyId, competencyInfo);
+			}
+ 		}
 		response.getResult().put(Constants.COUNT, competencyMap.size());
 		response.getResult().put(Constants.CONTENT, competencyMap.values());
+	}
+
+	/**
+	 * Checks if a course already exists in aquired details for same competency.
+	 *
+	 * Pre-conditions (guaranteed by parseDBInfo caller):
+	 * - userId exists in competencyMap
+	 * - competencyPassbookInfo is non-null
+	 * - getCompetencies() returns non-null Map
+	 * - getAcquiredDetails() returns non-null List
+	 */
+	private boolean isCourseAlreadyExist(
+			String competencyId, String userid,
+			Map<String, Object> acquiredDetail,
+			Map<String, CompetencyPassbookInfo> competencyMap
+	) {
+		CompetencyPassbookInfo competencyPassbookInfo = competencyMap.get(userid);
+		Map<String, CompetencyInfo> competencies = competencyPassbookInfo.getCompetencies();
+
+		if (competencies.get(competencyId) != null) {
+			List<Map<String, Object>> existingAquireDetailList = competencies.get(competencyId).getAcquiredDetails();
+
+			for (Map<String, Object> existingAquireDetail : existingAquireDetailList) {
+				if (existingAquireDetail.get(Constants.COURSE_ID) == null || acquiredDetail.get(Constants.COURSE_ID) == null) {
+					continue;
+				}
+
+				String existingCourseId = existingAquireDetail.get(Constants.COURSE_ID).toString();
+				String courseId = acquiredDetail.get(Constants.COURSE_ID).toString();
+
+				if (courseId.equalsIgnoreCase(existingCourseId)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	@Override
