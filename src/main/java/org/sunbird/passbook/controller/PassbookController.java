@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.sunbird.common.model.SBApiResponse;
 import org.sunbird.common.util.Constants;
+import org.sunbird.passbook.model.dto.LeaderboardRequestDTO;
+import org.sunbird.passbook.service.LeaderboardService;
 import org.sunbird.passbook.service.PassbookService;
 
 /**
@@ -23,6 +25,9 @@ import org.sunbird.passbook.service.PassbookService;
 public class PassbookController {
 	@Autowired
 	PassbookService passbookService;
+
+	@Autowired
+	LeaderboardService leaderboardService;
 
 	@PatchMapping("/user/v1/passbook")
 	public ResponseEntity<SBApiResponse> updatePassbook(@RequestHeader(Constants.X_AUTH_USER_ID) String requestedUserId,
@@ -49,6 +54,17 @@ public class PassbookController {
 	@PostMapping("/user/v1/migrateData")
 	public ResponseEntity<SBApiResponse> migrateData() {
 		SBApiResponse response = passbookService.migrateData();
+		return new ResponseEntity<>(response, response.getResponseCode());
+	}
+
+	/**
+	 * API to get leaderboard data with dynamic filters
+	 */
+	@PostMapping("/user/v1/leaderboard")
+	public ResponseEntity<SBApiResponse> getLeaderboard(
+			@RequestBody LeaderboardRequestDTO leaderboardRequest) {
+
+		SBApiResponse response = leaderboardService.getAllLeaderBoard(leaderboardRequest);
 		return new ResponseEntity<>(response, response.getResponseCode());
 	}
 }
