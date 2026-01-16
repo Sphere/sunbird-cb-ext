@@ -72,7 +72,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
                 response.setResponseCode(HttpStatus.BAD_REQUEST);
             }
 
-            response.getResult().put(Constants.COUNT, leaderboardResponseDTOOptional.get().getLeaderboardList().size());
+            response.getResult().put(Constants.COUNT, leaderboardResponseDTOOptional.get().getLeaderboardList().size()); // TODO: Rectify this - get all list count without limit and offset
             response.getResult().put(Constants.CONTENT, leaderboardResponseDTOOptional.get());
         } catch (Exception e) {
             logger.error("Error while collecting leaderboard list", e);

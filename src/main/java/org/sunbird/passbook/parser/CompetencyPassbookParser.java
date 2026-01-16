@@ -3,6 +3,7 @@ package org.sunbird.passbook.parser;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -88,11 +89,30 @@ public class CompetencyPassbookParser implements PassbookParser {
 
 			if (! isCourseAlreadyExist(competencyId, userId, acquiredDetail, competencyMap)) {
 				competencyInfo.getAcquiredDetails().add(acquiredDetail);
+				sortAttributeListByEffectiveDate(competencyInfo.getAcquiredDetails());
 				competencyPassbookInfo.getCompetencies().put(competencyId, competencyInfo);
 			}
  		}
 		response.getResult().put(Constants.COUNT, competencyMap.size());
 		response.getResult().put(Constants.CONTENT, competencyMap.values());
+	}
+
+    /** On every addition of attribute details sort is happening. List is very short in nature
+	 * System only can have 5 max element.
+	 * TODO: Further we can enhance this - but this enhance can lead to @parseDBInfo enchancement
+     * @param acquiredDetails
+     */
+	private void sortAttributeListByEffectiveDate(List<Map<String, Object>> acquiredDetails) {
+		acquiredDetails.sort((aquireDetailMap1, acquireDetailMap2) -> {
+			try {
+				Date date1 = (Date) aquireDetailMap1.get(Constants.EFFECTIVE_DATE);
+				Date date2 = (Date) acquireDetailMap2.get(Constants.EFFECTIVE_DATE);
+				return date2.compareTo(date1);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return 0;
+			}
+		});
 	}
 
 	/**
