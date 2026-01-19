@@ -40,7 +40,6 @@ public class LeaderboardServiceImpl implements LeaderboardService{
                     Column column = field.getAnnotation(Column.class);
                     return column != null ? column.name() : field.getName();
                 })
-//                .filter(name -> !name.equals("userid")) // Exclude primary key from filters
                 .collect(Collectors.toList());
     }
 
@@ -70,9 +69,10 @@ public class LeaderboardServiceImpl implements LeaderboardService{
                 response.getParams().setStatus(Constants.FAILED);
                 response.getParams().setErrmsg("Some data is missing in leaderboard list or active user details");
                 response.setResponseCode(HttpStatus.BAD_REQUEST);
+                return response;
             }
 
-//            response.getResult().put(Constants.COUNT, leaderboardResponseDTOOptional.get().getLeaderboardList().size()); // TODO: Rectify this - get all list count without limit and offset
+            response.getResult().put(Constants.COUNT, getRecordCountWithoutOffsetAndLimit(leaderboardRequestDTO));
             response.getResult().put(Constants.CONTENT, leaderboardResponseDTOOptional.get());
         } catch (Exception e) {
             logger.error("Error while collecting leaderboard list", e);
@@ -84,6 +84,26 @@ public class LeaderboardServiceImpl implements LeaderboardService{
         return response;
     }
 
+    /**
+     * @param leaderboardRequestDTO
+     * @return Its non null value
+     */
+    private Integer getRecordCountWithoutOffsetAndLimit(LeaderboardRequestDTO leaderboardRequestDTO) {
+        Integer recordCount = 0;
+
+        List<LeaderboardEntity> leaderboardEntityList = leaderboardRepository
+                .findAllUsersByDynamicFilters(
+                        leaderboardRequestDTO.getFilterAttribute(),
+                        null,
+                        null);
+
+        if (leaderboardEntityList != null) {
+            recordCount = leaderboardEntityList.size();
+        }
+
+        return recordCount;
+    }
+
     /** No need of verification of Leaderboard request DTO - it should be done by callee method.
      *
      * @param leaderboardRequestDTO - No validation required.
@@ -93,7 +113,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
         LeaderboardResponseDTO leaderboardResponseDTO = new LeaderboardResponseDTO();
 
         List<LeaderboardEntity> leaderboardEntityList = leaderboardRepository
-                .findByDynamicFilters(
+                .findAllUsersByDynamicFilters(
                         leaderboardRequestDTO.getFilterAttribute(),
                         leaderboardRequestDTO.getLimit(),
                         leaderboardRequestDTO.getOffset());
@@ -110,22 +130,24 @@ public class LeaderboardServiceImpl implements LeaderboardService{
         leaderboardResponseDTO.setLeaderboardList(leaderboardEntityList);
 
         Optional<LeaderboardEntity> leaderboardEntityOptional = leaderboardRepository
-                .findOneByUserId(leaderboardRequestDTO.getActiveUserId());
+                .findUserByDynamicFilter(leaderboardRequestDTO.getActiveUserId(), leaderboardRequestDTO.getFilterAttribute());
 
         if (!leaderboardEntityOptional.isPresent()) {
             return Optional.empty();
         }
 
-        Integer activeUserRank = leaderboardRepository.findUserRank(leaderboardEntityOptional.get() );
-        leaderboardEntityOptional.get().setRank(activeUserRank);
-
-//        leaderboardResponseDTO.getActiveUserDetails().setRank(activeUserRank);
+        Integer activeUserRank = leaderboardRepository.findUserRank(leaderboardEntityOptional.get(),  leaderboardRequestDTO.getFilterAttribute());
+        leaderboardEntityOptional.get().setRank(activeUserRank + 1);
 
         leaderboardResponseDTO.setActiveUserDetails(leaderboardEntityOptional.get());
 
         return Optional.of(leaderboardResponseDTO);
     }
 
+    /**
+     * @param leaderboardRequestDTO
+     * @return
+     */
     private Optional<String> validateLeaderBoardContent(LeaderboardRequestDTO leaderboardRequestDTO) {
         if (leaderboardRequestDTO == null) {
             logger.error("LeaderboardRequestDTO is null");
