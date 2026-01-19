@@ -1,6 +1,5 @@
 package org.sunbird.passbook.service;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +18,6 @@ import javax.annotation.PostConstruct;
 import javax.persistence.Column;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -93,7 +91,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
 
         List<LeaderboardEntity> leaderboardEntityList = leaderboardRepository
                 .findAllUsersByDynamicFilters(
-                        leaderboardRequestDTO.getFilterAttribute(),
+                        leaderboardRequestDTO.getFilters(),
                         null,
                         null);
 
@@ -114,7 +112,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
 
         List<LeaderboardEntity> leaderboardEntityList = leaderboardRepository
                 .findAllUsersByDynamicFilters(
-                        leaderboardRequestDTO.getFilterAttribute(),
+                        leaderboardRequestDTO.getFilters(),
                         leaderboardRequestDTO.getLimit(),
                         leaderboardRequestDTO.getOffset());
 
@@ -130,13 +128,13 @@ public class LeaderboardServiceImpl implements LeaderboardService{
         leaderboardResponseDTO.setLeaderboardList(leaderboardEntityList);
 
         Optional<LeaderboardEntity> leaderboardEntityOptional = leaderboardRepository
-                .findUserByDynamicFilter(leaderboardRequestDTO.getActiveUserId(), leaderboardRequestDTO.getFilterAttribute());
+                .findUserByDynamicFilter(leaderboardRequestDTO.getUserId(), leaderboardRequestDTO.getFilters());
 
         if (!leaderboardEntityOptional.isPresent()) {
             return Optional.empty();
         }
 
-        Integer activeUserRank = leaderboardRepository.findUserRank(leaderboardEntityOptional.get(),  leaderboardRequestDTO.getFilterAttribute());
+        Integer activeUserRank = leaderboardRepository.findUserRank(leaderboardEntityOptional.get(),  leaderboardRequestDTO.getFilters());
         leaderboardEntityOptional.get().setRank(activeUserRank + 1);
 
         leaderboardResponseDTO.setActiveUserDetails(leaderboardEntityOptional.get());
@@ -155,7 +153,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
         }
 
         // Validate activeUserId
-        if (StringUtils.isEmpty(leaderboardRequestDTO.getActiveUserId())) {
+        if (StringUtils.isEmpty(leaderboardRequestDTO.getUserId())) {
             logger.error("ActiveUserId is missing in leaderboard request");
             return Optional.of("User ID is required");
         }
@@ -189,13 +187,13 @@ public class LeaderboardServiceImpl implements LeaderboardService{
             }
         }
 
-        if (leaderboardRequestDTO.getFilterAttribute() == null
-                || leaderboardRequestDTO.getFilterAttribute().isEmpty()) {
+        if (leaderboardRequestDTO.getFilters() == null
+                || leaderboardRequestDTO.getFilters().isEmpty()) {
             logger.error("Invalid filter map - no value exist");
             return Optional.of("Invalid filter map");
         }
 
-        for (String key : leaderboardRequestDTO.getFilterAttribute().keySet()) {
+        for (String key : leaderboardRequestDTO.getFilters().keySet()) {
             // Check if filter key is not there
             if (!allowedFilterColumns.contains(key.toLowerCase())) {
                 logger.error("Invalid filter attribute key: {}. Allowed columns: {}",
@@ -204,7 +202,7 @@ public class LeaderboardServiceImpl implements LeaderboardService{
             }
 
             // Check if filter value is not empty
-            Object value = leaderboardRequestDTO.getFilterAttribute().get(key);
+            Object value = leaderboardRequestDTO.getFilters().get(key);
             if (value == null) {
                 logger.error("Filter attribute '{}' has empty or null value", key);
                 return Optional.of("Filter value cannot be empty for field: " + key);

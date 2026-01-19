@@ -11,9 +11,9 @@ import java.util.Map;
 @AllArgsConstructor
 public class LeaderboardRequestDTO {
 
-	private Map<String, Object> filterAttribute;
+	private Map<String, Object> filters;
 
-	private String activeUserId;
+	private String userId;
 
 	private Integer limit;
 
