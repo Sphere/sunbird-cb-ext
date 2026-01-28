@@ -143,7 +143,10 @@ public class CompetencyPassbookParser implements PassbookParser {
 				String existingCourseId = existingAquireDetail.get(Constants.COURSE_ID).toString();
 				String courseId = acquiredDetail.get(Constants.COURSE_ID).toString();
 
-				if (courseId.equalsIgnoreCase(existingCourseId)) {
+				String existingCompetencyLevelId = existingAquireDetail.get(Constants.COMPETENCY_LEVEL_ID).toString();
+				String competencyLevelId = acquiredDetail.get(Constants.COMPETENCY_LEVEL_ID).toString();
+
+				if (courseId.equalsIgnoreCase(existingCourseId) && competencyLevelId.equalsIgnoreCase(existingCompetencyLevelId)) {
 					return true;
 				}
 			}

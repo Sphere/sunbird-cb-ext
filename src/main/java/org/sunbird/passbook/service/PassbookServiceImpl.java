@@ -67,7 +67,7 @@ public class PassbookServiceImpl implements PassbookService {
 			List<Map<String, Object>> passbookDbInfoList = new ArrayList<Map<String, Object>>();
 			errMsg = parser.validateUpdateReqeust(request, requestedUserId, passbookDbInfoList);
 
-			boolean isValidEntity = isValidPassbookEntry(passbookDbInfoList, requestedUserId, typeName);
+			boolean isValidEntity = isValidPassbookEntry(passbookDbInfoList, requestedUserId);
 
 			if (!isValidEntity) {
 				errMsg = Constants.PASSBOOK_EXIST_ERROR;
@@ -93,55 +93,48 @@ public class PassbookServiceImpl implements PassbookService {
 		return response;
 	}
 
+
     /**
-     * @param passbookRequestList - It is list in nature but in most cases it is just having only one
-	 *                            compitency details, that cancelling out N squre loop.
+     * @param dbMappedRequestedDetails Requested Data is mapped with DB table attribute names.
+	 *                                 It is holding only request data not DB table data.
      * @param userId
-     * @param typeName
      * @return
      */
-	private boolean isValidPassbookEntry(List<Map<String, Object>> passbookRequestList,
-										 String userId, String typeName) {
+	private boolean isValidPassbookEntry(List<Map<String, Object>> dbMappedRequestedDetails, String userId) {
 
-		Map<String, Object> propertyMap = new HashMap<>();
-		propertyMap.put(Constants.USER_ID, Arrays.asList(userId));
-		propertyMap.put(Constants.TYPE_NAME, typeName);
+		for (Map<String, Object> passbookRequest : dbMappedRequestedDetails) {
+			String requestedCourseId = null, existingCourseId = null;
+			Map<String, Object> propertyMap = new HashMap<>();
 
-		List<Map<String, Object>> existingPassbookList = cassandraOperation.getRecordsByProperties(Constants.DATABASE,
+			propertyMap.put(Constants.USER_ID, Arrays.asList(userId));
+			propertyMap.put(Constants.TYPE_NAME, passbookRequest.get(Constants.TYPE_NAME));
+			propertyMap.put(Constants.TYPE_ID, passbookRequest.get(Constants.TYPE_ID));
+			propertyMap.put(Constants.CONTEXT_ID, passbookRequest.get(Constants.CONTEXT_ID));
+
+			List<Map<String, Object>> existingPassbookList = cassandraOperation.getRecordsByProperties(Constants.DATABASE,
 				Constants.USER_PASSBOOK_TABLE, propertyMap, null);
 
-		if (existingPassbookList != null && !existingPassbookList.isEmpty()) {
-			for (Map<String, Object> existingPassbook : existingPassbookList) {
+			if (existingPassbookList == null || existingPassbookList.isEmpty()) {
+				return true;
+			}
 
-				for (Map<String, Object> passbookRequest : passbookRequestList) {
-					String requestedCourseId = null, existingCourseId = null;
+			for (Map<String, Object> existingPassbookMap : existingPassbookList) {
+				Map<String, Object> existingAcquiredDetailsMap = (Map<String, Object>) existingPassbookMap
+						.get(Constants.ACQUIRED_DETAILS);
+				if (existingAcquiredDetailsMap != null) {
+					existingCourseId = (String) existingAcquiredDetailsMap.get(Constants.COURSE_ID);
+				}
 
-					String requestedUserId = (String) passbookRequest.get(Constants.USER_ID);
-					String requestedTypeId = (String) passbookRequest.get(Constants.TYPE_ID);
-					Map<String, Object> requestedAcquiredDetailsMap = (Map<String, Object>) passbookRequest
-							.get(Constants.ACQUIRED_DETAILS);
-					if (requestedAcquiredDetailsMap != null) {
-						requestedCourseId = (String) requestedAcquiredDetailsMap.get(Constants.COURSE_ID);
-					}
+				Map<String, Object> requestedAcquiredDetailsMap = (Map<String, Object>) passbookRequest
+						.get(Constants.ACQUIRED_DETAILS);
 
-					String existingUserId = (String) existingPassbook.get(Constants.USER_ID);
-					String existingTypeId = (String) existingPassbook.get(Constants.TYPE_ID);
-					Map<String, Object> existingAcquiredDetailsMap = (Map<String, Object>) existingPassbook
-							.get(Constants.ACQUIRED_DETAILS);
-					if (existingAcquiredDetailsMap != null) {
-						existingCourseId = (String) existingAcquiredDetailsMap.get(Constants.COURSE_ID);
-					}
+				if (requestedAcquiredDetailsMap != null) {
+					requestedCourseId = (String) requestedAcquiredDetailsMap.get(Constants.COURSE_ID);
+				}
 
-					if (!StringUtils.isEmpty(requestedUserId)
-							&& !StringUtils.isEmpty(requestedTypeId)
-							&& !StringUtils.isEmpty(requestedCourseId)) {
-
-						if (requestedCourseId.equalsIgnoreCase(existingCourseId)
-								&& requestedUserId.equals(existingUserId)
-								&& requestedTypeId.equalsIgnoreCase(existingTypeId)
-						) {
-							return false;
-						}
+				if (!StringUtils.isEmpty(requestedCourseId) && !StringUtils.isEmpty(existingCourseId)) {
+					if (requestedCourseId.equalsIgnoreCase(existingCourseId)) {
+						return false;
 					}
 				}
 			}
