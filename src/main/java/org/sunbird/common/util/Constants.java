@@ -652,6 +652,7 @@ public class Constants {
 	public static final String REDIS_CACHE = "redis cache";
 	public static final String PHONE_NUMBER_EXIST_ERROR = "Phone number is already registered.";
 	public static final String MOBILE_NUMBER_EXIST_ERROR = "Mobile number is already registered.";
+	public static final String PASSBOOK_EXIST_ERROR = "Passbook entry already exist";
 	public static final String PHONE_VERIFIED = "phoneVerified";
 	public static final String QUERY = "query";
 	public static final String SORT_BY_KEYWORD = "sortBy";
@@ -669,6 +670,7 @@ public class Constants {
 	public static final String PASSBOOK_ADMIN_READ_API = "user.passbook.admin.read";
 	public static final String PASSBOOK_ADD_API = "user.passbook.add";
 	public static final String USER_PASSBOOK_TABLE = "user_passbook_v2";
+	public static final String USER_LEADERBOARD_READ_API = "user.leaderboard.read";
 	public static final String TYPE_NAME = "typeName";
 	public static final String TYPE_ID = "typeId";
 	public static final String ADDITIONAL_PARAM = "additionalParams";

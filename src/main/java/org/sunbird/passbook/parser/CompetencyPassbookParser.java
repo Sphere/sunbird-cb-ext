@@ -3,6 +3,7 @@ package org.sunbird.passbook.parser;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -86,11 +87,72 @@ public class CompetencyPassbookParser implements PassbookParser {
 				}
 			}
 
-			competencyInfo.getAcquiredDetails().add(acquiredDetail);
-			competencyPassbookInfo.getCompetencies().put(competencyId, competencyInfo);
-		}
+			if (! isCourseAlreadyExist(competencyId, userId, acquiredDetail, competencyMap)) {
+				competencyInfo.getAcquiredDetails().add(acquiredDetail);
+				sortAttributeListByEffectiveDate(competencyInfo.getAcquiredDetails());
+				competencyPassbookInfo.getCompetencies().put(competencyId, competencyInfo);
+			}
+ 		}
 		response.getResult().put(Constants.COUNT, competencyMap.size());
 		response.getResult().put(Constants.CONTENT, competencyMap.values());
+	}
+
+    /** On every addition of attribute details sort is happening. List is very short in nature
+	 * System only can have 5 max element.
+	 * TODO: Further we can enhance this - but this enhance can lead to @parseDBInfo enchancement
+     * @param acquiredDetails
+     */
+	private void sortAttributeListByEffectiveDate(List<Map<String, Object>> acquiredDetails) {
+		acquiredDetails.sort((aquireDetailMap1, acquireDetailMap2) -> {
+			try {
+				Date date1 = (Date) aquireDetailMap1.get(Constants.EFFECTIVE_DATE);
+				Date date2 = (Date) acquireDetailMap2.get(Constants.EFFECTIVE_DATE);
+				return date2.compareTo(date1);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return 0;
+			}
+		});
+	}
+
+	/**
+	 * Checks if a course already exists in aquired details for same competency.
+	 *
+	 * Pre-conditions (guaranteed by parseDBInfo caller):
+	 * - userId exists in competencyMap
+	 * - competencyPassbookInfo is non-null
+	 * - getCompetencies() returns non-null Map
+	 * - getAcquiredDetails() returns non-null List
+	 */
+	private boolean isCourseAlreadyExist(
+			String competencyId, String userid,
+			Map<String, Object> acquiredDetail,
+			Map<String, CompetencyPassbookInfo> competencyMap
+	) {
+		CompetencyPassbookInfo competencyPassbookInfo = competencyMap.get(userid);
+		Map<String, CompetencyInfo> competencies = competencyPassbookInfo.getCompetencies();
+
+		if (competencies.get(competencyId) != null) {
+			List<Map<String, Object>> existingAquireDetailList = competencies.get(competencyId).getAcquiredDetails();
+
+			for (Map<String, Object> existingAquireDetail : existingAquireDetailList) {
+				if (existingAquireDetail.get(Constants.COURSE_ID) == null || acquiredDetail.get(Constants.COURSE_ID) == null) {
+					continue;
+				}
+
+				String existingCourseId = existingAquireDetail.get(Constants.COURSE_ID).toString();
+				String courseId = acquiredDetail.get(Constants.COURSE_ID).toString();
+
+				String existingCompetencyLevelId = existingAquireDetail.get(Constants.COMPETENCY_LEVEL_ID).toString();
+				String competencyLevelId = acquiredDetail.get(Constants.COMPETENCY_LEVEL_ID).toString();
+
+				if (courseId.equalsIgnoreCase(existingCourseId) && competencyLevelId.equalsIgnoreCase(existingCompetencyLevelId)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	@Override
