@@ -1,0 +1,54 @@
+package org.sunbird.learnerPath.service;
+
+
+import com.course.recommendation.repository.LearnerPathRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.sunbird.learnerPath.model.LearnerPath;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class LearnerPathService {
+
+    private final LearnerPathRepository repository;
+
+    @Autowired
+    public LearnerPathService(LearnerPathRepository repository) {
+        this.repository = repository;
+    }
+
+    public LearnerPath insertOrUpdate(LearnerPath learnerPath) {
+        // If it's a new enrollment, set the enrollment datetime
+        if (learnerPath.getDatetime() == null) {
+            learnerPath.setDatetime(LocalDateTime.now());
+        }
+
+        // Update last access time every time the user accesses the course
+        learnerPath.setLastAccessTime(LocalDateTime.now());
+
+        // Increment attempt count for each update
+        learnerPath.incrementAttemptCount();
+
+        // Save the learnerPath object to the repository
+        return repository.save(learnerPath);
+    }
+
+    //    public Optional<LearnerPath> findById(String userId) {
+//        return repository.findById(userId);
+//    }
+    public List<LearnerPath> findByUserId(String userId) {
+        return repository.findByUserid(userId);
+    }
+
+    public List<LearnerPath> findByUserIdAndCourseId(String userId, String courseId) {
+        return repository.findByUseridAndCourseid(userId, courseId);
+    }
+
+    public void deleteById(String userId) {
+        repository.deleteById(userId);
+    }
+}
+
