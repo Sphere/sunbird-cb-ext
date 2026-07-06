@@ -1,14 +1,13 @@
-package org.sunbird.learnerPath.service;
+package org.sunbird.learnerPath.repository.service;
 
 
-import com.course.recommendation.repository.LearnerPathRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.sunbird.learnerPath.model.LearnerPath;
+import org.sunbird.learnerPath.repository.LearnerPathRepository;
+import org.sunbird.learnerPath.repository.model.LearnerPath;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LearnerPathService {

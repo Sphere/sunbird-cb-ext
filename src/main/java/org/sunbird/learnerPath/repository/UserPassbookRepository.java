@@ -1,8 +1,8 @@
-package org.sunbird.learnerPath;
+package org.sunbird.learnerPath.repository;
 
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.stereotype.Repository;
-import org.sunbird.learnerPath.model.UserPassbook;
+import org.sunbird.learnerPath.repository.model.UserPassbook;
 
 import java.util.List;
 

@@ -1,15 +1,14 @@
-package org.sunbird.learnerPath.service;
+package org.sunbird.learnerPath.repository.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.sunbird.learnerPath.UserPassbookRepository;
-import org.sunbird.learnerPath.model.LearnerPath;
-import org.sunbird.learnerPath.model.UserPassbook;
+import org.sunbird.learnerPath.repository.UserPassbookRepository;
+import org.sunbird.learnerPath.repository.model.LearnerPath;
+import org.sunbird.learnerPath.repository.model.UserPassbook;
 
 @Service
 public class UserPassbookService {

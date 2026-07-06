@@ -1,4 +1,4 @@
-package org.sunbird.learnerPath.model;
+package org.sunbird.learnerPath.repository.model;
 
 import java.time.LocalDateTime;
 

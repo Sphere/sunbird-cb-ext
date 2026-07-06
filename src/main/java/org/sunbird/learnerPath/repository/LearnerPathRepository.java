@@ -1,10 +1,10 @@
-package org.sunbird.learnerPath;
+package org.sunbird.learnerPath.repository;
 
 import java.util.List;
 
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.stereotype.Repository;
-import org.sunbird.learnerPath.model.LearnerPath;
+import org.sunbird.learnerPath.repository.model.LearnerPath;
 
 
 @Repository
