@@ -1141,8 +1141,14 @@ public class ProfileServiceImpl implements ProfileService {
 		sourceBuilder.fetchSource(serverConfig.getEsAutoCompleteIncludeFields(), new String[] {});
 		System.out.println("indexname" + serverConfig.getSbEsUserProfileIndex());
 		System.out.println("final query" + finalQuery);
+		// OpenSearch 2.x removed mapping types. Passing one makes the client issue
+		// POST /<index>/_doc/_search, which OpenSearch treats as an index request
+		// (HTTP 201) instead of a search, so the response cannot be parsed and the
+		// call fails. Search typeless here. es.profile.index.type is deliberately
+		// left alone -- addEntity/updateEntity/readEntity still need "_doc" in their
+		// document URLs, so blanking that shared property would break those callers.
 		SearchResponse searchResponse = indexerService.getEsResult(serverConfig.getSbEsUserProfileIndex(),
-				serverConfig.getEsProfileIndexType(), sourceBuilder, true);
+				StringUtils.EMPTY, sourceBuilder, true);
 		System.out.println("source builder" + sourceBuilder);
 		System.out.println("search response" + searchResponse);
 
